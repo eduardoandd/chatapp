@@ -7,7 +7,7 @@ class TextModel {
   String userId = "";
   String nickname = "";
 
-  TextModel( this.text,  this.userId,  this.nickname);
+  TextModel( {required this.text,  required this.userId,  required this.nickname});
 
   TextModel.fromJson(Map<String, dynamic> json) {
     dataHora=(json['dataHora'] as Timestamp).toDate();

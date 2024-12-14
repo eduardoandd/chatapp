@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -15,6 +17,19 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     var nicknameController = TextEditingController();
+    String? userId = '';
+
+    void userIdGenerate() {
+      Future.delayed(Duration(seconds: 2), () async {
+        final prefs = await SharedPreferences.getInstance();
+        userId = prefs.getString('user_id');
+        if (userId == null) {
+          var uuId = Uuid();
+          userId = uuId.v4();
+          prefs.setString('user_id', userId.toString());
+        }
+      });
+    }
 
     return SafeArea(
         child: Scaffold(
@@ -32,6 +47,7 @@ class _HomePageState extends State<HomePage> {
               ),
               TextButton(
                   onPressed: () {
+                    userIdGenerate();
                     Navigator.push(
                         context,
                         MaterialPageRoute(
