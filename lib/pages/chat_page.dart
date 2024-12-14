@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:chatapp/models/text_model.dart';
+import 'package:chatapp/shared/widget/chat_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -28,12 +29,10 @@ class _ChatPageState extends State<ChatPage> {
     carregarUsuario();
   }
 
-  void carregarUsuario()async {
+  void carregarUsuario() async {
     final prefs = await SharedPreferences.getInstance();
     userId = prefs.getString('user_id')!;
-    setState(() {
-      
-    });
+    setState(() {});
   }
 
   @override
@@ -47,7 +46,19 @@ class _ChatPageState extends State<ChatPage> {
         child: Column(
           children: [
             Expanded(
-              child: ListView(),
+              child: StreamBuilder<QuerySnapshot>(
+                  stream: db.collection("chat").snapshots(),
+                  builder: (context, snapshot) {
+                    return !snapshot.hasData
+                        ? CircularProgressIndicator()
+                        : ListView(
+                            children: snapshot.data!.docs.map((e) {
+                              var textModel = TextModel.fromJson(
+                                  (e.data() as Map<String, dynamic>));
+                                  return ChatWidget(textModel: textModel, me: textModel.userId == userId);
+                            }).toList(),
+                          );
+                  }),
             ),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
@@ -59,15 +70,19 @@ class _ChatPageState extends State<ChatPage> {
                 // ignore: prefer_const_constructors
                 Expanded(
                     child: TextField(
-                      controller: textController,
+                  controller: textController,
                   decoration: InputDecoration(focusedBorder: InputBorder.none),
                 )),
-                IconButton(onPressed: ()async {
-                  var textModel = TextModel(text:textController.text, userId:userId, nickname: widget.nickname);
-                  await db.collection("chat").add(textModel.toJson());
-                  textController.text ='';
-
-                }, icon: Icon(Icons.send))
+                IconButton(
+                    onPressed: () async {
+                      var textModel = TextModel(
+                          text: textController.text,
+                          userId: userId,
+                          nickname: widget.nickname);
+                      await db.collection("chat").add(textModel.toJson());
+                      textController.text = '';
+                    },
+                    icon: Icon(Icons.send))
               ]),
             )
           ],
@@ -75,6 +90,4 @@ class _ChatPageState extends State<ChatPage> {
       ),
     ));
   }
-  
-  
 }
